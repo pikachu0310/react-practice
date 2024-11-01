@@ -1,12 +1,14 @@
 import React from 'react';
 
-function MemoList({ memos }) {
+function MemoList({ memos, onEdit }) {
     return (
         <div>
             <h2>メモ一覧</h2>
             <ul>
-                {memos.map((memo, index) => (
-                    <li key={index}>{memo}</li>
+                {memos.map(memo => (
+                    <li key={memo.id} onClick={() => onEdit(memo)}>
+                        {memo.title || '（無題）'}
+                    </li>
                 ))}
             </ul>
         </div>

@@ -1,20 +1,58 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import MemoList from './MemoList';
-import MemoForm from './MemoForm';
+import MemoEditor from './MemoEditor';
 import './App.css';
 
 function App() {
     const [memos, setMemos] = useState([]);
+    const [activeMemo, setActiveMemo] = useState(null);
+    const [isEditing, setIsEditing] = useState(false);
 
-    const addMemo = (memo) => {
-        setMemos([...memos, memo]);
+    useEffect(() => {
+        const storedMemos = JSON.parse(localStorage.getItem('memos')) || [];
+        setMemos(storedMemos);
+    }, []);
+
+    useEffect(() => {
+        localStorage.setItem('memos', JSON.stringify(memos));
+    }, [memos]);
+
+    const handleAddMemo = () => {
+        const newMemo = { id: Date.now(), title: '新規メモ', content: '' };
+        setMemos([newMemo, ...memos]);
+        setActiveMemo(newMemo);
+        setIsEditing(true);
+    };
+
+    const handleSaveMemo = (updatedMemo) => {
+        setMemos(memos.map(memo => (memo.id === updatedMemo.id ? updatedMemo : memo)));
+        setIsEditing(false);
+    };
+
+    const handleDeleteMemo = (id) => {
+        setMemos(memos.filter(memo => memo.id !== id));
+        setActiveMemo(null);
+        setIsEditing(false);
+    };
+
+    const handleEditMemo = (memo) => {
+        setActiveMemo(memo);
+        setIsEditing(true);
     };
 
     return (
         <div className="App">
-            <h1>メモアプリ</h1>
-            <MemoForm addMemo={addMemo} />
-            <MemoList memos={memos} />
+            <h1>シンプルなメモアプリ (React練習用)</h1>
+            <button onClick={handleAddMemo}>＋ 新規メモ</button>
+            {isEditing ? (
+                <MemoEditor
+                    memo={activeMemo}
+                    onSave={handleSaveMemo}
+                    onDelete={handleDeleteMemo}
+                />
+            ) : (
+                <MemoList memos={memos} onEdit={handleEditMemo} />
+            )}
         </div>
     );
 }
