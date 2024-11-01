@@ -9,12 +9,16 @@ function App() {
     const [isEditing, setIsEditing] = useState(false);
 
     useEffect(() => {
-        const storedMemos = JSON.parse(localStorage.getItem('memos')) || [];
-        setMemos(storedMemos);
+        const storedMemos = localStorage.getItem('memos');
+        if (storedMemos) {
+            setMemos(JSON.parse(storedMemos));
+        }
     }, []);
 
     useEffect(() => {
-        localStorage.setItem('memos', JSON.stringify(memos));
+        if (memos.length > 0) {
+            localStorage.setItem('memos', JSON.stringify(memos));
+        }
     }, [memos]);
 
     const handleAddMemo = () => {
