@@ -7,7 +7,6 @@ import "./App.css";
 function AppContent() {
   const [memos, setMemos] = useState([]);
   const [activeMemo, setActiveMemo] = useState(null);
-  const [isEditing, setIsEditing] = useState(false);
   const { isLoggedIn, login, logout } = useAuth();
 
   useEffect(() => {
@@ -28,7 +27,6 @@ function AppContent() {
     const newMemo = { id: Date.now(), title: "新規メモ", content: "" };
     setMemos([newMemo, ...memos]);
     setActiveMemo(newMemo);
-    setIsEditing(true);
   };
 
   const handleSaveMemo = (updatedMemo) => {
@@ -36,41 +34,41 @@ function AppContent() {
     setMemos(
       memos.map((memo) => (memo.id === updatedMemo.id ? updatedMemo : memo)),
     );
-    setIsEditing(false);
+    setActiveMemo(null);
   };
 
   const handleDeleteMemo = (id) => {
     if (!isLoggedIn) return;
     setMemos(memos.filter((memo) => memo.id !== id));
     setActiveMemo(null);
-    setIsEditing(false);
   };
 
   const handleEditMemo = (memo) => {
     setActiveMemo(memo);
-    setIsEditing(true);
   };
 
   return (
     <div className="App">
       <h1>シンプルなメモアプリ (React練習用)</h1>
       {isLoggedIn ? (
-        <button onClick={logout}>ログアウト</button>
+        <>
+          <button onClick={logout}>ログアウト</button>
+          <button onClick={handleAddMemo}>＋ 新規メモ</button>
+        </>
       ) : (
         <button onClick={login}>ログイン</button>
       )}
-      <button onClick={handleAddMemo} disabled={!isLoggedIn}>
-        ＋ 新規メモ
-      </button>
-      {isEditing ? (
-        <MemoEditor
-          memo={activeMemo}
-          onSave={handleSaveMemo}
-          onDelete={handleDeleteMemo}
-        />
-      ) : (
+      <div className="content">
         <MemoList memos={memos} onEdit={handleEditMemo} />
-      )}
+        {activeMemo && (
+          <MemoEditor
+            memo={activeMemo}
+            onSave={isLoggedIn ? handleSaveMemo : null}
+            onDelete={isLoggedIn ? handleDeleteMemo : null}
+            isEditable={isLoggedIn}
+          />
+        )}
+      </div>
     </div>
   );
 }
