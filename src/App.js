@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from "react";
 import MemoList from "./MemoList";
 import MemoEditor from "./MemoEditor";
+import { AuthProvider, useAuth } from "./AuthContext";
 import "./App.css";
 
-function App() {
+function AppContent() {
   const [memos, setMemos] = useState([]);
   const [activeMemo, setActiveMemo] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
+  const { isLoggedIn, login, logout } = useAuth();
 
   useEffect(() => {
     const storedMemos = localStorage.getItem("memos");
@@ -22,6 +24,7 @@ function App() {
   }, [memos]);
 
   const handleAddMemo = () => {
+    if (!isLoggedIn) return;
     const newMemo = { id: Date.now(), title: "新規メモ", content: "" };
     setMemos([newMemo, ...memos]);
     setActiveMemo(newMemo);
@@ -29,6 +32,7 @@ function App() {
   };
 
   const handleSaveMemo = (updatedMemo) => {
+    if (!isLoggedIn) return;
     setMemos(
       memos.map((memo) => (memo.id === updatedMemo.id ? updatedMemo : memo)),
     );
@@ -36,6 +40,7 @@ function App() {
   };
 
   const handleDeleteMemo = (id) => {
+    if (!isLoggedIn) return;
     setMemos(memos.filter((memo) => memo.id !== id));
     setActiveMemo(null);
     setIsEditing(false);
@@ -49,7 +54,14 @@ function App() {
   return (
     <div className="App">
       <h1>シンプルなメモアプリ (React練習用)</h1>
-      <button onClick={handleAddMemo}>＋ 新規メモ</button>
+      {isLoggedIn ? (
+        <button onClick={logout}>ログアウト</button>
+      ) : (
+        <button onClick={login}>ログイン</button>
+      )}
+      <button onClick={handleAddMemo} disabled={!isLoggedIn}>
+        ＋ 新規メモ
+      </button>
       {isEditing ? (
         <MemoEditor
           memo={activeMemo}
@@ -60,6 +72,14 @@ function App() {
         <MemoList memos={memos} onEdit={handleEditMemo} />
       )}
     </div>
+  );
+}
+
+function App() {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
   );
 }
 
