@@ -1,42 +1,46 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import MemoList from "./MemoList";
 import MemoEditor from "./MemoEditor";
 import "./App.css";
 
 function App() {
-  const [memos, setMemos] = useState([]);
+  const [memos, setMemos] = useState(() => {
+    const storedMemos = localStorage.getItem("memos");
+    return storedMemos ? JSON.parse(storedMemos) : [];
+  });
   const [activeMemo, setActiveMemo] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
 
-  useEffect(() => {
-    const storedMemos = localStorage.getItem("memos");
-    if (storedMemos) {
-      setMemos(JSON.parse(storedMemos));
-    }
-  }, []);
-
-  useEffect(() => {
-    if (memos.length > 0) {
-      localStorage.setItem("memos", JSON.stringify(memos));
-    }
-  }, [memos]);
+  const updateLocalStorage = (updatedMemos) => {
+    localStorage.setItem("memos", JSON.stringify(updatedMemos));
+  };
 
   const handleAddMemo = () => {
-    const newMemo = { id: Date.now(), title: "新規メモ", content: "" };
-    setMemos([newMemo, ...memos]);
+    const newMemo = { id: crypto.randomUUID(), title: "新規メモ", content: "" };
+    const updatedMemos = [newMemo, ...memos];
+    setMemos(updatedMemos);
+    updateLocalStorage(updatedMemos);
     setActiveMemo(newMemo);
     setIsEditing(true);
   };
 
   const handleSaveMemo = (updatedMemo) => {
-    setMemos(
-      memos.map((memo) => (memo.id === updatedMemo.id ? updatedMemo : memo)),
+    if (!updatedMemo.title.trim() || !updatedMemo.content.trim()) {
+      alert("タイトルと内容を入力してください。");
+      return;
+    }
+    const updatedMemos = memos.map((memo) =>
+      memo.id === updatedMemo.id ? updatedMemo : memo,
     );
+    setMemos(updatedMemos);
+    updateLocalStorage(updatedMemos);
     setIsEditing(false);
   };
 
   const handleDeleteMemo = (id) => {
-    setMemos(memos.filter((memo) => memo.id !== id));
+    const updatedMemos = memos.filter((memo) => memo.id !== id);
+    setMemos(updatedMemos);
+    updateLocalStorage(updatedMemos);
     setActiveMemo(null);
     setIsEditing(false);
   };
